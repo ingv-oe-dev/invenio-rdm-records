@@ -311,6 +311,34 @@
               "scheme": {"$ref": "local://definitions-v1.0.0.json#/scheme"}
             }
           }
+        },
+        "wms_resource": {
+          "description": "WMS resource",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "wms_url": {
+              "description": "WMS resource url.",
+              "type": "string",
+              "format": "uri"
+            },
+            "wms_params": {
+              "description": "WMS parameters.",
+              "type": "object"
+            }
+          }
+        },
+        "cover": {
+          "description": "Cover picture",
+          "type": "string",
+          "format": "uri"
+        },
+        "keywords": {
+          "description": "Free text keywords.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

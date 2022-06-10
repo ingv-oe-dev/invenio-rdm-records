@@ -650,6 +650,9 @@
                 "type" : "text"
               }
             }
+          },
+          "keywords": {
+            "type": "keyword"
           }
         }
       },

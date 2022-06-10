@@ -66,6 +66,25 @@ def locale_validation(value, field_name):
         elif list(value.keys())[0] not in valid_locales_code:
             raise ValidationError(_("Not a valid locale."), field_name)
 
+def wms_params_validation(value, field_name):
+    """Validates wms_params keys."""
+    KEYS = [
+        "layers",
+        "styles",
+        "format",
+        "transparent",
+        "version",
+        "crs",
+        "uppercase"
+    ]
+    if value:
+        if KEYS[0] not in value.keys():
+            raise ValidationError(_("Layers not specified."), field_name)
+        else:
+            for k in value.keys():
+                if k not in KEYS:
+                    raise ValidationError(_("Invalid key specified."),
+                    field_name)
 
 class PersonOrOrganizationSchema(Schema):
     """Person or Organization schema."""
@@ -176,6 +195,17 @@ class DescriptionSchema(Schema):
     type = fields.Nested(VocabularySchema, required=True)
     lang = fields.Nested(VocabularySchema)
 
+class WMSResourceSchema(Schema):
+    """Schema for WMS resource."""
+
+    wms_url = SanitizedUnicode(required=True,
+                                validate=_valid_url(_('Not a valid URL.')))
+    wms_params = fields.Dict()
+
+    @validates("wms_params")
+    def validate_wms_params(self, value):
+        """Validates that wms_params contains only one valid keys."""
+        wms_params_validation(value, "wms_params")
 
 def _is_uri(uri):
     try:
@@ -356,3 +386,7 @@ class MetadataSchema(Schema):
     locations = fields.Nested(FeatureSchema)
     funding = fields.List(fields.Nested(FundingSchema))
     references = fields.List(fields.Nested(ReferenceSchema))
+    wms_resource = fields.Nested(WMSResourceSchema)
+    cover = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
+    keywords = fields.List(SanitizedUnicode(
+        validate=_not_blank(_('Keywords cannot be a blank string.'))))
