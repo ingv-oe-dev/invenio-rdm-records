@@ -401,5 +401,3 @@ class MetadataSchema(Schema):
     references = fields.List(fields.Nested(ReferenceSchema))
     wms_resource = fields.Nested(WMSResourceSchema)
     cover = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
-    keywords = fields.List(SanitizedUnicode(
-        validate=_not_blank(_('Keywords cannot be a blank string.'))))

@@ -332,13 +332,6 @@
           "description": "Cover picture",
           "type": "string",
           "format": "uri"
-        },
-        "keywords": {
-          "description": "Free text keywords.",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         }
       }
     },
