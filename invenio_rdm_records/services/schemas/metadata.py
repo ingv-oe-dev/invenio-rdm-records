@@ -9,6 +9,7 @@
 
 """RDM record schemas."""
 
+from datetime import datetime
 from functools import partial
 from urllib import parse
 
@@ -90,10 +91,47 @@ def wms_params_validation(value, field_name):
     if value:
         if KEYS[0] not in value.keys():
             raise ValidationError(_("Layers not specified."), field_name)
-        else:
-            for k in value.keys():
-                if k not in KEYS:
-                    raise ValidationError(_("Invalid key specified."),
+
+        for k in value.keys():
+            if k not in KEYS:
+                raise ValidationError(_("Invalid key specified, must be in {KEYS}").
+                format(KEYS=KEYS), field_name, field_name)
+
+def chart_props_validation(value, field_name):
+    """Validates chart_props keys."""
+    KEYS = [
+        "guid",
+        "groupbyseconds",
+        "starttime",
+        "endtime",
+        "aggregatefunctioncriteria",
+        "minthreshold",
+        "maxthreshold",
+        "gainvalue",
+        "offsetvalue",
+        "rawdata",
+        "returndatetype"
+    ]
+    if value:
+        if KEYS[0] not in value.keys():
+            raise ValidationError(_("GUID not specified."), field_name)
+
+        for k in value.keys():
+            if k not in KEYS:
+                raise ValidationError(_("Invalid key specified, must be in {KEYS}").
+                format(KEYS=KEYS), field_name)
+            elif k == KEYS[2] or k == KEYS[3]:
+                try:
+                    value[k] = datetime.strptime(value[k], '%Y-%m-%d %H:%M:%S').isoformat(' ')
+                except Exception as e:
+                    raise ValidationError(_("Invalid {k} date.").format(k=k),
+                        field_name)
+
+        if KEYS[2] in value.keys() and KEYS[3] in value.keys():
+            starttime = datetime.strptime(value[KEYS[2]], '%Y-%m-%d %H:%M:%S').isoformat(' ')
+            endtime = datetime.strptime(value[KEYS[3]], '%Y-%m-%d %H:%M:%S').isoformat(' ')
+            if starttime > endtime:
+                raise ValidationError(_("'endtime' cannot be minor than'starttime'.").format(k=k),
                     field_name)
 
 class PersonOrOrganizationSchema(Schema):
@@ -207,8 +245,20 @@ class WMSResourceSchema(Schema):
 
     @validates("wms_params")
     def validate_wms_params(self, value):
-        """Validates that wms_params contains only one valid keys."""
+        """Validates that wms_params contains only valid keys."""
         wms_params_validation(value, "wms_params")
+
+class ChartResourceSchema(Schema):
+    """Schema for Chart resource."""
+
+    chart_url = SanitizedUnicode(required=True,
+                                validate=_valid_url(_('Not a valid URL.')))
+    chart_props = fields.Dict()
+
+    @validates("chart_props")
+    def validate_wms_params(self, value):
+        """Validates that chart_props contains only valid keys."""
+        chart_props_validation(value, "chart_props")
 
 def _is_uri(uri):
     try:
@@ -399,5 +449,8 @@ class MetadataSchema(Schema):
     locations = fields.Nested(FeatureSchema)
     funding = fields.List(fields.Nested(FundingSchema))
     references = fields.List(fields.Nested(ReferenceSchema))
-    wms_resource = fields.Nested(WMSResourceSchema)
+
+    # INGV-OE custom metadata.
+    chart_resource = fields.Nested(ChartResourceSchema)
     cover = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
+    wms_resource = fields.Nested(WMSResourceSchema)

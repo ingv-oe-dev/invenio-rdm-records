@@ -12,6 +12,7 @@ from invenio_records_permissions.generators import (
     AnyUser,
     AuthenticatedUser,
     Disable,
+    SuperUser,
     SystemProcess,
 )
 from invenio_records_permissions.policies.records import RecordPermissionPolicy
@@ -120,7 +121,7 @@ class RDMRecordPermissionPolicy(RecordPermissionPolicy):
     # - Records/files are updated/deleted via drafts so we don't support
     #   using below actions.
     can_update = [Disable()]
-    can_delete = [Disable()]
+    can_delete = [SuperUser()]
     can_create_files = [Disable()]
     can_update_files = [Disable()]
-    can_delete_files = [Disable()]
+    can_delete_files = [SuperUser()]

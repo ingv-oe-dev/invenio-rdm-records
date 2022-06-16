@@ -332,6 +332,22 @@
           "description": "Cover picture",
           "type": "string",
           "format": "uri"
+        },
+        "chart_resource": {
+          "description": "Chart resource",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "chart_url": {
+              "description": "Chart resource url.",
+              "type": "string",
+              "format": "uri"
+            },
+            "chart_props": {
+              "description": "Chart parameters.",
+              "type": "object"
+            }
+          }
         }
       }
     },
