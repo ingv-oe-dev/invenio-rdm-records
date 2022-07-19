@@ -10,8 +10,6 @@ from io import BytesIO
 from PIL import Image
 from werkzeug.utils import secure_filename
 
-from tests.helpers import login_user, logout_user
-
 
 def publish_record_with_images(
     client, file_id, record, headers, restricted_files=False
@@ -50,8 +48,29 @@ def publish_record_with_images(
     return id_
 
 
-def test_iiif_base(running_app, es_clear, client_with_login, headers, minimal_record):
-    client = client_with_login
+def test_file_links_depending_on_file_extensions(
+    running_app, es_clear, client, uploader, headers, minimal_record
+):
+    client = uploader.login(client)
+    file_id = "test_image.zip"
+    recid = publish_record_with_images(client, file_id, minimal_record, headers)
+    response = client.get(f"/records/{recid}/files/{file_id}")
+    assert "iiif_canvas" not in response.json["links"]
+    assert "iiif_base" not in response.json["links"]
+    assert "iiif_info" not in response.json["links"]
+    assert "iiif_api" not in response.json["links"]
+
+    file_id = "test_image.png"
+    recid = publish_record_with_images(client, file_id, minimal_record, headers)
+    response = client.get(f"/records/{recid}/files/{file_id}")
+    assert "iiif_canvas" in response.json["links"]
+    assert "iiif_base" in response.json["links"]
+    assert "iiif_info" in response.json["links"]
+    assert "iiif_api" in response.json["links"]
+
+
+def test_iiif_base(running_app, es_clear, client, uploader, headers, minimal_record):
+    client = uploader.login(client)
     file_id = "test_image.png"
     recid = publish_record_with_images(client, file_id, minimal_record, headers)
     response = client.get(f"/iiif/record:{recid}:{file_id}")
@@ -62,8 +81,8 @@ def test_iiif_base(running_app, es_clear, client_with_login, headers, minimal_re
     )
 
 
-def test_iiif_info(running_app, es_clear, client_with_login, headers, minimal_record):
-    client = client_with_login
+def test_iiif_info(running_app, es_clear, client, uploader, headers, minimal_record):
+    client = uploader.login(client)
     file_id = "test_image.png"
     recid = publish_record_with_images(client, file_id, minimal_record, headers)
     response = client.get(f"/iiif/record:{recid}:{file_id}/info.json")
@@ -87,22 +106,23 @@ def test_api_info_not_found(running_app, es_clear, client):
 def test_iiif_base_restricted_files(
     running_app,
     es_clear,
-    client_with_login,
+    client,
+    uploader,
     headers,
     minimal_record,
     users,
 ):
-    client = client_with_login
+    client = uploader.login(client)
     file_id = "test_image.png"
     recid = publish_record_with_images(
         client, file_id, minimal_record, headers, restricted_files=True
     )
-    logout_user(client)
+    client = uploader.logout(client)
     response = client.get(f"/iiif/record:{recid}:{file_id}")
     assert response.status_code == 403
 
     # Log in user and try again
-    login_user(client, users[0])
+    client = uploader.login(client)
     response = client.get(f"/iiif/record:{recid}:{file_id}")
     assert response.status_code == 301
 
@@ -110,30 +130,31 @@ def test_iiif_base_restricted_files(
 def test_iiif_info_restricted_files(
     running_app,
     es_clear,
-    client_with_login,
+    client,
+    uploader,
     headers,
     minimal_record,
     users,
 ):
-    client = client_with_login
+    client = uploader.login(client)
     file_id = "test_image.png"
     recid = publish_record_with_images(
         client, file_id, minimal_record, headers, restricted_files=True
     )
-    logout_user(client)
+    client = uploader.logout(client)
     response = client.get(f"/iiif/record:{recid}:{file_id}/info.json")
     assert response.status_code == 403
 
     # Log in user and try again
-    login_user(client, users[0])
+    client = uploader.login(client)
     response = client.get(f"/iiif/record:{recid}:{file_id}/info.json")
     assert response.status_code == 200
 
 
 def test_iiif_image_api(
-    running_app, es_clear, client_with_login, headers, minimal_record
+    running_app, es_clear, client, uploader, headers, minimal_record
 ):
-    client = client_with_login
+    client = uploader.login(client)
     file_id = "test_image.png"
     recid = publish_record_with_images(client, file_id, minimal_record, headers)
 

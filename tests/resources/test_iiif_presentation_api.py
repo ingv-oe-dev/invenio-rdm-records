@@ -12,8 +12,6 @@ from io import BytesIO
 from PIL import Image
 from tripoli import IIIFValidator
 
-from tests.helpers import login_user, logout_user
-
 
 def publish_record_with_images(
     client, file_id, record, headers, restricted_files=False
@@ -53,9 +51,9 @@ def publish_record_with_images(
 
 
 def test_iiif_manifest_schema(
-    running_app, es_clear, client_with_login, headers, minimal_record
+    running_app, es_clear, client, uploader, headers, minimal_record
 ):
-    client = client_with_login
+    client = uploader.login(client)
     file_id = "test_image.png"
     recid = publish_record_with_images(client, file_id, minimal_record, headers)
     response = client.get(f"/iiif/record:{recid}/manifest")
@@ -66,9 +64,9 @@ def test_iiif_manifest_schema(
 
 
 def test_iiif_manifest(
-    running_app, es_clear, client_with_login, headers, minimal_record
+    running_app, es_clear, client, uploader, headers, minimal_record
 ):
-    client = client_with_login
+    client = uploader.login(client)
     file_id = "test_image.png"
     recid = publish_record_with_images(client, file_id, minimal_record, headers)
     response = client.get(f"/iiif/record:{recid}/manifest")
@@ -112,25 +110,38 @@ def test_iiif_manifest(
     )
 
 
+def test_empty_iiif_manifest(
+    running_app, es_clear, client, uploader, headers, minimal_record
+):
+    client = uploader.login(client)
+    file_id = "test_image.zip"
+    recid = publish_record_with_images(client, file_id, minimal_record, headers)
+    response = client.get(f"/iiif/record:{recid}/manifest")
+    assert response.status_code == 200
+    manifest = response.json
+    assert not manifest["sequences"][0]["canvases"]
+
+
 def test_iiif_manifest_restricted_files(
     running_app,
     es_clear,
-    client_with_login,
+    client,
+    uploader,
     headers,
     minimal_record,
     users,
 ):
-    client = client_with_login
+    client = uploader.login(client)
     file_id = "test_image.png"
     recid = publish_record_with_images(
         client, file_id, minimal_record, headers, restricted_files=True
     )
-    logout_user(client)
+    client = uploader.logout(client)
     response = client.get(f"/iiif/record:{recid}/manifest")
     # TODO: should we return only the parts the user has access to?
     assert response.status_code == 403
 
     # Log in user and try again
-    login_user(client, users[0])
+    client = uploader.login(client)
     response = client.get(f"/iiif/record:{recid}/manifest")
     assert response.status_code == 200

@@ -24,7 +24,12 @@ from invenio_drafts_resources.resources import RecordResourceConfig
 from invenio_records.systemfields.relations import InvalidRelationValue
 from invenio_records_resources.resources.files import FileResourceConfig
 
-from ..services.errors import ReviewExistsError, ReviewNotFoundError, ReviewStateError
+from ..services.errors import (
+    ReviewExistsError,
+    ReviewInconsistentAccessRestrictions,
+    ReviewNotFoundError,
+    ReviewStateError,
+)
 from .args import RDMSearchRequestArgsSchema
 from .serializers import (
     CSLJSONSerializer,
@@ -126,6 +131,12 @@ class RDMRecordResourceConfig(RecordResourceConfig):
                 description=exc.args[0],
             )
         ),
+        ReviewInconsistentAccessRestrictions: create_error_handler(
+            lambda exc: HTTPJSONException(
+                code=400,
+                description=exc.args[0],
+            )
+        ),
     }
 
 
@@ -216,6 +227,14 @@ class IIIFResourceConfig(ResourceConfig):
         "rotation": ma.fields.Str(),
         "quality": ma.fields.Str(),
         "image_format": ma.fields.Str(),
+    }
+
+    request_read_args = {
+        "dl": ma.fields.Str(),
+    }
+
+    request_headers = {
+        "If-Modified-Since": ma.fields.DateTime(),
     }
 
     response_handler = {"application/json": ResponseHandler(JSONSerializer())}
