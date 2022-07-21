@@ -253,10 +253,11 @@ class ChartResourceSchema(Schema):
 
     chart_url = SanitizedUnicode(required=True,
                                 validate=_valid_url(_('Not a valid URL.')))
+    ts_published = fields.Boolean()
     chart_props = fields.Dict()
 
     @validates("chart_props")
-    def validate_wms_params(self, value):
+    def validate_chart_params(self, value):
         """Validates that chart_props contains only valid keys."""
         chart_props_validation(value, "chart_props")
 

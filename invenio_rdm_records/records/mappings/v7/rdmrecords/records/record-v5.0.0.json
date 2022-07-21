@@ -650,6 +650,14 @@
                 "type" : "text"
               }
             }
+          },
+          "chart_resource" : {
+            "type": "object",
+            "properties": {
+              "ts_published" {
+                "type" : "keyword"
+              }
+            }
           }
         }
       },

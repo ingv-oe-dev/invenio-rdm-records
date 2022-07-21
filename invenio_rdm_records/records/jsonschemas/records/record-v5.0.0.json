@@ -346,6 +346,10 @@
             "chart_props": {
               "description": "Chart parameters.",
               "type": "object"
+            },
+            "ts_published" : {
+              "description" : "Time seris published on TSDSystem.",
+              "type" : "boolean"
             }
           }
         }
