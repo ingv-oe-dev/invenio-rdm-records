@@ -333,23 +333,27 @@
           "type": "string",
           "format": "uri"
         },
-        "chart_resource": {
-          "description": "Chart resource",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "chart_url": {
-              "description": "Chart resource url.",
-              "type": "string",
-              "format": "uri"
-            },
-            "chart_props": {
-              "description": "Chart parameters.",
-              "type": "object"
-            },
-            "ts_published" : {
-              "description" : "Time seris published on TSDSystem.",
-              "type" : "boolean"
+        "ts_resources": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "description": "Chart resource",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "chart_url": {
+                "description": "Chart resource url.",
+                "type": "string",
+                "format": "uri"
+              },
+              "chart_props": {
+                "description": "Chart parameters.",
+                "type": "object"
+              },
+              "ts_published": {
+                "description": "Time series published on TSDSystem.",
+                "type" : "boolean"
+              }
             }
           }
         }

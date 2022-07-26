@@ -248,8 +248,8 @@ class WMSResourceSchema(Schema):
         """Validates that wms_params contains only valid keys."""
         wms_params_validation(value, "wms_params")
 
-class ChartResourceSchema(Schema):
-    """Schema for Chart resource."""
+class TSResourceSchema(Schema):
+    """Schema for time series resources."""
 
     chart_url = SanitizedUnicode(required=True,
                                 validate=_valid_url(_('Not a valid URL.')))
@@ -452,6 +452,6 @@ class MetadataSchema(Schema):
     references = fields.List(fields.Nested(ReferenceSchema))
 
     # INGV-OE custom metadata.
-    chart_resource = fields.Nested(ChartResourceSchema)
+    ts_resources = fields.List(fields.Nested(TSResourceSchema))
     cover = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
     wms_resource = fields.Nested(WMSResourceSchema)

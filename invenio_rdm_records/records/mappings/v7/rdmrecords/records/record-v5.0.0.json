@@ -651,10 +651,9 @@
               }
             }
           },
-          "chart_resource" : {
-            "type": "object",
+          "ts_resources" : {
             "properties": {
-              "ts_published" {
+              "ts_published": {
                 "type" : "keyword"
               }
             }
