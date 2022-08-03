@@ -341,6 +341,14 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
+              "guid": {
+                "descriprtion": "Time series identifier on TSDSystem.",
+                "type": "string"
+              },
+              "name": {
+                "descriprtion": "Time series name.",
+                "type": "string"
+              },
               "chart_url": {
                 "description": "Chart resource url.",
                 "type": "string",

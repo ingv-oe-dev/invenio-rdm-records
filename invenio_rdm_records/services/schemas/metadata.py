@@ -100,21 +100,19 @@ def wms_params_validation(value, field_name):
 def chart_props_validation(value, field_name):
     """Validates chart_props keys."""
     KEYS = [
-        "guid",
-        "groupbyseconds",
-        "starttime",
-        "endtime",
-        "aggregatefunctioncriteria",
-        "minthreshold",
-        "maxthreshold",
-        "gainvalue",
-        "offsetvalue",
-        "rawdata",
-        "returndatetype"
+        "schema",
+        "name",
+        "start_time",
+        "end_time",
+        "sampling",
+        "columns",
+        "preview",
+        "description",
+        "additiona_info"
     ]
     if value:
-        if KEYS[0] not in value.keys():
-            raise ValidationError(_("GUID not specified."), field_name)
+        if KEYS[1] not in value.keys():
+            raise ValidationError(_("Name not specified."), field_name)
 
         for k in value.keys():
             if k not in KEYS:
@@ -251,9 +249,10 @@ class WMSResourceSchema(Schema):
 class TSResourceSchema(Schema):
     """Schema for time series resources."""
 
-    chart_url = SanitizedUnicode(required=True,
-                                validate=_valid_url(_('Not a valid URL.')))
-    ts_published = fields.Boolean()
+    chart_url = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
+    guid = SanitizedUnicode()
+    name = SanitizedUnicode()
+    ts_published = fields.Boolean(required=True)
     chart_props = fields.Dict()
 
     @validates("chart_props")
