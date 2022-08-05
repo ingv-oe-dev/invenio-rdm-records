@@ -249,10 +249,10 @@ class WMSResourceSchema(Schema):
 class TSResourceSchema(Schema):
     """Schema for time series resources."""
 
+    ts_published = fields.Boolean(required=True)
+    name = SanitizedUnicode(required=True)
     chart_url = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
     guid = SanitizedUnicode()
-    name = SanitizedUnicode()
-    ts_published = fields.Boolean(required=True)
     chart_props = fields.Dict()
 
     @validates("chart_props")
