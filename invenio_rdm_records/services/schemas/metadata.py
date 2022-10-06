@@ -97,40 +97,62 @@ def wms_params_validation(value, field_name):
                 raise ValidationError(_("Invalid key specified, must be in {KEYS}").
                 format(KEYS=KEYS), field_name, field_name)
 
-def chart_props_validation(value, field_name):
-    """Validates chart_props keys."""
+def header_validation(value, field_name):
     KEYS = [
-        "schema",
-        "name",
-        "start_time",
-        "end_time",
+        "starttime",
+        "endtime",
         "sampling",
         "columns",
-        "preview",
-        "description",
-        "additiona_info"
     ]
     if value:
-        if KEYS[1] not in value.keys():
-            raise ValidationError(_("Name not specified."), field_name)
+        if KEYS[0] not in value.keys():
+            raise ValidationError(_("Start time not specified."), field_name)
+        
+        if KEYS[3] not in value.keys():
+            raise ValidationError(_("Table columns not specified."), field_name)
 
         for k in value.keys():
-            if k not in KEYS:
+            if k not in KEYS: # Checks for invalid keys
                 raise ValidationError(_("Invalid key specified, must be in {KEYS}").
                 format(KEYS=KEYS), field_name)
-            elif k == KEYS[2] or k == KEYS[3]:
+            elif k == KEYS[0] or k == KEYS[1]: # Checks start time and end time are valid
                 try:
                     value[k] = datetime.strptime(value[k], '%Y-%m-%d %H:%M:%S').isoformat(' ')
                 except Exception as e:
                     raise ValidationError(_("Invalid {k} date.").format(k=k),
                         field_name)
 
-        if KEYS[2] in value.keys() and KEYS[3] in value.keys():
-            starttime = datetime.strptime(value[KEYS[2]], '%Y-%m-%d %H:%M:%S').isoformat(' ')
-            endtime = datetime.strptime(value[KEYS[3]], '%Y-%m-%d %H:%M:%S').isoformat(' ')
+        # Checks start time is before end time
+        if KEYS[0] in value.keys() and KEYS[1] in value.keys(): 
+            starttime = datetime.strptime(value[KEYS[0]], '%Y-%m-%d %H:%M:%S').isoformat(' ')
+            endtime = datetime.strptime(value[KEYS[1]], '%Y-%m-%d %H:%M:%S').isoformat(' ')
             if starttime > endtime:
-                raise ValidationError(_("'endtime' cannot be minor than'starttime'.").format(k=k),
-                    field_name)
+                raise ValidationError(_("'endtime' cannot be before than'start_time'.").format(k=k),
+                    field_name)         
+
+def preview_validation(value, field_name):
+    KEYS = [
+        "starttime",
+        "endtime",
+        "sampling",
+        "aggregation",
+        "columns",
+    ]
+
+    if value:
+        if KEYS[0] not in value.keys():
+            raise ValidationError(_("Start time not specified in preview field."), field_name)
+        
+        if KEYS[1] not in value.keys():
+            raise ValidationError(_("End time not specified in preview field."), field_name)
+
+        if KEYS[3] not in value.keys():
+            raise ValidationError(_("Columns not specified in preview field."), field_name)
+        
+        for k in value.keys():
+            if k not in KEYS: # Checks for invalid keys
+                raise ValidationError(_("Invalid key specified, must be in {KEYS}").
+                format(KEYS=KEYS), field_name)
 
 class PersonOrOrganizationSchema(Schema):
     """Person or Organization schema."""
@@ -249,16 +271,24 @@ class WMSResourceSchema(Schema):
 class TSResourceSchema(Schema):
     """Schema for time series resources."""
 
-    ts_published = fields.Boolean(required=True)
-    name = SanitizedUnicode(required=True)
-    chart_url = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
     guid = SanitizedUnicode()
-    chart_props = fields.Dict()
+    name = SanitizedUnicode(required=True)
+    tsdws_url = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
+    ts_published = fields.Boolean(required=True)
+    header = fields.Dict()
+    preview = fields.Dict()
+    description = SanitizedUnicode()
+    additional_info = fields.Dict()
 
-    @validates("chart_props")
-    def validate_chart_params(self, value):
+    @validates("header")
+    def validate_header_params(self, value):
         """Validates that chart_props contains only valid keys."""
-        chart_props_validation(value, "chart_props")
+        header_validation(value, "header")
+    
+    @validates("preview")
+    def validate_preview_params(self, value):
+        """Validates that chart_props contains only valid keys."""
+        preview_validation(value, "preview")
 
 def _is_uri(uri):
     try:

@@ -337,30 +337,42 @@
           "type": "array",
           "minItems": 0,
           "items": {
-            "description": "Chart resource",
+            "description": "Time series resource",
             "type": "object",
             "additionalProperties": false,
             "properties": {
               "guid": {
-                "descriprtion": "Time series identifier on TSDSystem.",
+                "description": "Time series global unique identifier on TSDSystem.",
                 "type": "string"
               },
               "name": {
-                "descriprtion": "Time series name.",
+                "description": "Time series name.",
                 "type": "string"
               },
-              "chart_url": {
-                "description": "Chart resource url.",
+              "tsdws_url": {
+                "description": "TSDSystem resource url.",
                 "type": "string",
                 "format": "uri"
               },
-              "chart_props": {
-                "description": "Chart parameters.",
+              "ts_published": {
+                "description": "Time series published flag on TSDSystem.",
+                "type" : "boolean"
+              },
+              "header": {
+                "description": "Time series descriptive header.",
                 "type": "object"
               },
-              "ts_published": {
-                "description": "Time series published on TSDSystem.",
-                "type" : "boolean"
+              "preview": {
+                "description": "Metadata to plot timeseries preview on record landing page.",
+                "type": "object"
+              },
+              "description": {
+                "description": "Time series generic description.",
+                "type": "string"
+              },
+              "additional_info": {
+                "description": "Time series additional information.",
+                "type": "object"
               }
             }
           }
