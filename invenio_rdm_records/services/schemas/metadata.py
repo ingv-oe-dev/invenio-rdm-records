@@ -136,7 +136,7 @@ def preview_validation(value, field_name):
         "endtime",
         "sampling",
         "aggregation",
-        "columns",
+        "columns"
     ]
 
     if value:
