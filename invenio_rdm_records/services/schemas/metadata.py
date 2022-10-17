@@ -111,24 +111,7 @@ def header_validation(value, field_name):
         if KEYS[3] not in value.keys():
             raise ValidationError(_("Table columns not specified."), field_name)
 
-        for k in value.keys():
-            if k not in KEYS: # Checks for invalid keys
-                raise ValidationError(_("Invalid key specified, must be in {KEYS}").
-                format(KEYS=KEYS), field_name)
-            elif k == KEYS[0] or k == KEYS[1]: # Checks start time and end time are valid
-                try:
-                    value[k] = datetime.strptime(value[k], '%Y-%m-%d %H:%M:%S').isoformat(' ')
-                except Exception as e:
-                    raise ValidationError(_("Invalid {k} date.").format(k=k),
-                        field_name)
-
-        # Checks start time is before end time
-        if KEYS[0] in value.keys() and KEYS[1] in value.keys(): 
-            starttime = datetime.strptime(value[KEYS[0]], '%Y-%m-%d %H:%M:%S').isoformat(' ')
-            endtime = datetime.strptime(value[KEYS[1]], '%Y-%m-%d %H:%M:%S').isoformat(' ')
-            if starttime > endtime:
-                raise ValidationError(_("'endtime' cannot be before than'start_time'.").format(k=k),
-                    field_name)         
+        __validate_fields(value, field_name, KEYS)
 
 def preview_validation(value, field_name):
     KEYS = [
@@ -146,13 +129,32 @@ def preview_validation(value, field_name):
         if KEYS[1] not in value.keys():
             raise ValidationError(_("End time not specified in preview field."), field_name)
 
-        if KEYS[3] not in value.keys():
+        if KEYS[4] not in value.keys():
             raise ValidationError(_("Columns not specified in preview field."), field_name)
         
-        for k in value.keys():
-            if k not in KEYS: # Checks for invalid keys
-                raise ValidationError(_("Invalid key specified, must be in {KEYS}").
-                format(KEYS=KEYS), field_name)
+        __validate_fields(value, field_name, KEYS)
+
+def __validate_fields(value, field_name, KEYS):
+
+    for k in value.keys():
+        if k not in KEYS: # Checks for invalid keys
+            raise ValidationError(_("Invalid key specified, must be in {KEYS}").
+            format(KEYS=KEYS), field_name)
+        elif k == KEYS[0] or k == KEYS[1]:
+            try:
+                datetime.fromisoformat(value[k])
+            except Exception as e:
+                print(e)
+                raise ValidationError(_("Invalid {k} date.").format(k=k),
+                    field_name)
+
+    # Checks start time is before end time
+    if KEYS[0] in value.keys() and KEYS[1] in value.keys(): 
+        start = datetime.fromisoformat(str(value[KEYS[0]]))
+        end = datetime.fromisoformat(str(value[KEYS[1]]))
+        if start > end:
+            raise ValidationError(_("'endtime' cannot be before than'starttime'.").format(k=k),
+                field_name)
 
 class PersonOrOrganizationSchema(Schema):
     """Person or Organization schema."""
@@ -481,6 +483,7 @@ class MetadataSchema(Schema):
     references = fields.List(fields.Nested(ReferenceSchema))
 
     # INGV-OE custom metadata.
+    method = SanitizedHTML(validate=validate.Length(min=3))
     ts_resources = fields.List(fields.Nested(TSResourceSchema))
     cover = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
     wms_resource = fields.Nested(WMSResourceSchema)

@@ -328,6 +328,10 @@
             }
           }
         },
+        "method": {
+          "description": "Dataset method (may contain HTML).",
+          "type": "string"
+        },
         "cover": {
           "description": "Cover picture",
           "type": "string",
