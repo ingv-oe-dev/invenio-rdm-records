@@ -655,6 +655,9 @@
             "properties": {
               "ts_published": {
                 "type" : "keyword"
+              },"preview": {
+                "type": "object",
+                "dynamic": true
               }
             }
           }
