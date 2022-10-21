@@ -655,9 +655,18 @@
             "properties": {
               "ts_published": {
                 "type" : "keyword"
-              },"preview": {
-                "type": "object",
-                "dynamic": true
+              },
+              "header": {
+                "enabled": false
+              },
+              "preview": {
+                "enabled": false
+              },
+              "additional_info": {
+                "enabled": false
+              },
+              "tsdws_url": {
+                "enabled": false
               }
             }
           }
