@@ -142,16 +142,15 @@ def __validate_fields(value, field_name, KEYS):
             format(KEYS=KEYS), field_name)
         elif k == KEYS[0] or k == KEYS[1]:
             try:
-                datetime.fromisoformat(value[k])
+                datetime.fromisoformat(value[k].replace('Z', '+00:00'))
             except Exception as e:
-                print(e)
                 raise ValidationError(_("Invalid {k} date.").format(k=k),
                     field_name)
 
     # Checks start time is before end time
     if KEYS[0] in value.keys() and KEYS[1] in value.keys(): 
-        start = datetime.fromisoformat(str(value[KEYS[0]]))
-        end = datetime.fromisoformat(str(value[KEYS[1]]))
+        start = datetime.fromisoformat(str(value[KEYS[0]]).replace('Z', '+00:00'))
+        end = datetime.fromisoformat(str(value[KEYS[1]]).replace('Z', '+00:00'))
         if start > end:
             raise ValidationError(_("'endtime' cannot be before than'starttime'.").format(k=k),
                 field_name)
