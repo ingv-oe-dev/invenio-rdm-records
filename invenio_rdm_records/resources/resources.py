@@ -27,6 +27,7 @@ from flask_resources import (
     route,
     with_content_negotiation,
 )
+from importlib_metadata import version
 from invenio_drafts_resources.resources import RecordResource
 from invenio_drafts_resources.resources.records.errors import RedirectException
 from invenio_records_resources.resources.errors import ErrorHandlersMixin
@@ -38,7 +39,7 @@ from invenio_records_resources.resources.records.resource import (
     request_search_args,
     request_view_args,
 )
-from invenio_records_resources.resources.records.utils import es_preference
+from invenio_records_resources.resources.records.utils import search_preference
 from werkzeug.utils import secure_filename
 
 from .serializers import (
@@ -169,7 +170,7 @@ class RDMRecordResource(RecordResource):
             identity=g.identity,
             community_id=resource_requestctx.view_args["pid_value"],
             params=resource_requestctx.args,
-            es_preference=es_preference(),
+            search_preference=search_preference(),
         )
         return hits.to_dict(), 200
 
@@ -410,12 +411,22 @@ class IIIFResource(ErrorHandlersMixin, Resource):
                 filename = "{0}-{1}-{2}-{3}-{4}.{5}".format(
                     uuid, region, size, quality, rotation, image_format
                 )
+
             send_file_kwargs.update(
                 as_attachment=True,
-                attachment_filename=secure_filename(filename),
             )
+            if version("Flask") < "2.2.0":
+                send_file_kwargs.update(
+                    attachment_filename=secure_filename(filename),
+                )
+            else:
+                # Flask 2.2 renamed `attachment_filename` to `download_name`
+                send_file_kwargs.update(
+                    download_name=secure_filename(filename),
+                )
         if_modified_since = resource_requestctx.headers.get("If-Modified-Since")
         if if_modified_since and last_modified and if_modified_since >= last_modified:
             raise HTTPJSONException(code=304)
+
         response = send_file(to_serve, **send_file_kwargs)
         return response
