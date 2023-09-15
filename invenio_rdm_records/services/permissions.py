@@ -139,9 +139,9 @@ class RDMRecordPermissionPolicy(RecordPermissionPolicy):
     # - Records/files are updated/deleted via drafts so we don't support
     #   using below actions.
     can_update = [Disable()]
-    can_delete = [Disable()]
+    can_delete = [RecordOwners()]
     can_create_files = [Disable()]
     can_set_content_files = [Disable()]
     can_commit_files = [Disable()]
     can_update_files = [Disable()]
-    can_delete_files = [Disable()]
+    can_delete_files = [RecordOwners()]

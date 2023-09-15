@@ -44,7 +44,7 @@
         }
       }
     ],
-    "dynamic": "strict",
+    "dynamic": true,
     "date_detection": false,
     "numeric_detection": false,
     "properties": {

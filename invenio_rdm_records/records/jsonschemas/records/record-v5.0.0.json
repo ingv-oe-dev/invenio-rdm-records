@@ -343,6 +343,75 @@
               }
             }
           }
+        },
+        "wms_resource": {
+          "description": "WMS resource",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "wms_url": {
+              "description": "WMS resource url.",
+              "type": "string",
+              "format": "uri"
+            },
+            "wms_params": {
+              "description": "WMS parameters.",
+              "type": "object"
+            }
+          }
+        },
+        "method": {
+          "description": "Dataset method (may contain HTML).",
+          "type": "string"
+        },
+        "cover": {
+          "description": "Cover picture",
+          "type": "string",
+          "format": "uri"
+        },
+        "ts_resources": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "description": "Time series resource",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "guid": {
+                "description": "Time series global unique identifier on TSDSystem.",
+                "type": "string"
+              },
+              "name": {
+                "description": "Time series name.",
+                "type": "string"
+              },
+              "tsdws_url": {
+                "description": "TSDSystem resource url.",
+                "type": "string",
+                "format": "uri"
+              },
+              "ts_published": {
+                "description": "Time series published flag on TSDSystem.",
+                "type" : "boolean"
+              },
+              "header": {
+                "description": "Time series descriptive header.",
+                "type": "object"
+              },
+              "preview": {
+                "description": "Metadata to plot timeseries preview on record landing page.",
+                "type": "object"
+              },
+              "description": {
+                "description": "Time series generic description.",
+                "type": "string"
+              },
+              "additional_info": {
+                "description": "Time series additional information.",
+                "type": "object"
+              }
+            }
+          }
         }
       }
     },

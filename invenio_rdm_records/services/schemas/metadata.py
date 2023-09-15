@@ -9,6 +9,7 @@
 
 """RDM record schemas."""
 
+from datetime import datetime
 from functools import partial
 from urllib import parse
 
@@ -79,6 +80,83 @@ def locale_validation(value, field_name):
         elif list(value.keys())[0] not in valid_locales_code:
             raise ValidationError(_("Not a valid locale."), field_name)
 
+def wms_params_validation(value, field_name):
+    """Validates wms_params keys."""
+    KEYS = [
+        "layers",
+        "styles",
+        "format",
+        "transparent",
+        "version",
+        "crs",
+        "uppercase"
+    ]
+    if value:
+        if KEYS[0] not in value.keys():
+            raise ValidationError(_("Layers not specified."), field_name)
+
+        for k in value.keys():
+            if k not in KEYS:
+                raise ValidationError(_("Invalid key specified, must be in {KEYS}").
+                format(KEYS=KEYS), field_name, field_name)
+
+def header_validation(value, field_name):
+    KEYS = [
+        "starttime",
+        "endtime",
+        "sampling",
+        "columns",
+    ]
+    if value:
+        if KEYS[0] not in value.keys():
+            raise ValidationError(_("Start time not specified."), field_name)
+        
+        if KEYS[3] not in value.keys():
+            raise ValidationError(_("Table columns not specified."), field_name)
+
+        __validate_fields(value, field_name, KEYS)
+
+def preview_validation(value, field_name):
+    KEYS = [
+        "starttime",
+        "endtime",
+        "sampling",
+        "aggregation",
+        "columns"
+    ]
+
+    if value:
+        if KEYS[0] not in value.keys():
+            raise ValidationError(_("Start time not specified in preview field."), field_name)
+        
+        if KEYS[1] not in value.keys():
+            raise ValidationError(_("End time not specified in preview field."), field_name)
+
+        if KEYS[4] not in value.keys():
+            raise ValidationError(_("Columns not specified in preview field."), field_name)
+        
+        __validate_fields(value, field_name, KEYS)
+
+def __validate_fields(value, field_name, KEYS):
+
+    for k in value.keys():
+        if k not in KEYS: # Checks for invalid keys
+            raise ValidationError(_("Invalid key specified, must be in {KEYS}").
+            format(KEYS=KEYS), field_name)
+        elif k == KEYS[0] or k == KEYS[1]:
+            try:
+                datetime.fromisoformat(value[k].replace('Z', '+00:00'))
+            except Exception as e:
+                raise ValidationError(_("Invalid {k} date.").format(k=k),
+                    field_name)
+
+    # Checks start time is before end time
+    if KEYS[0] in value.keys() and KEYS[1] in value.keys(): 
+        start = datetime.fromisoformat(str(value[KEYS[0]]).replace('Z', '+00:00'))
+        end = datetime.fromisoformat(str(value[KEYS[1]]).replace('Z', '+00:00'))
+        if start > end:
+            raise ValidationError(_("'endtime' cannot be before than'starttime'.").format(k=k),
+                field_name)
 
 class PersonOrOrganizationSchema(Schema):
     """Person or Organization schema."""
@@ -175,6 +253,39 @@ class DescriptionSchema(Schema):
     type = fields.Nested(VocabularySchema, required=True)
     lang = fields.Nested(VocabularySchema)
 
+class WMSResourceSchema(Schema):
+    """Schema for WMS resource."""
+
+    wms_url = SanitizedUnicode(required=True,
+                                validate=_valid_url(_('Not a valid URL.')))
+    wms_params = fields.Dict()
+
+    @validates("wms_params")
+    def validate_wms_params(self, value):
+        """Validates that wms_params contains only valid keys."""
+        wms_params_validation(value, "wms_params")
+
+class TSResourceSchema(Schema):
+    """Schema for time series resources."""
+
+    guid = SanitizedUnicode()
+    name = SanitizedUnicode(required=True)
+    tsdws_url = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
+    ts_published = fields.Boolean(required=True)
+    header = fields.Dict()
+    preview = fields.Dict()
+    description = SanitizedUnicode()
+    additional_info = fields.Dict()
+
+    @validates("header")
+    def validate_header_params(self, value):
+        """Validates that chart_props contains only valid keys."""
+        header_validation(value, "header")
+    
+    @validates("preview")
+    def validate_preview_params(self, value):
+        """Validates that chart_props contains only valid keys."""
+        preview_validation(value, "preview")
 
 def _is_uri(uri):
     try:
@@ -365,3 +476,9 @@ class MetadataSchema(Schema):
     locations = fields.Nested(FeatureSchema)
     funding = fields.List(fields.Nested(FundingSchema))
     references = fields.List(fields.Nested(ReferenceSchema))
+
+    # INGV-OE custom metadata.
+    method = SanitizedHTML(validate=validate.Length(min=3))
+    ts_resources = fields.List(fields.Nested(TSResourceSchema))
+    cover = SanitizedUnicode(validate=_valid_url(_('Not a valid URL.')))
+    wms_resource = fields.Nested(WMSResourceSchema)

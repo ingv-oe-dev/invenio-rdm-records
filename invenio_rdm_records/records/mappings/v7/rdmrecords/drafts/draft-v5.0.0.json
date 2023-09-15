@@ -763,6 +763,25 @@
               }
             }
           },
+          "ts_resources": {
+            "properties": {
+              "ts_published": {
+                "type": "keyword"
+              },
+              "header": {
+                "enabled": false
+              },
+              "preview": {
+                "enabled": false
+              },
+              "additional_info": {
+                "enabled": false
+              },
+              "tsdws_url": {
+                "enabled": false
+              }
+            }
+          },
           "version": {
             "type": "keyword"
           }
