@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2019 CERN.
 # Copyright (C) 2019 Northwestern University.
+# Copyright (C) 2023 TU Wien.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -18,6 +19,7 @@ from invenio_records_permissions.policies.records import RecordPermissionPolicy
 
 from .generators import (
     CommunityAction,
+    IfFileIsLocal,
     IfRestricted,
     RecordOwners,
     SecretLinks,
@@ -72,6 +74,11 @@ class RDMRecordPermissionPolicy(RecordPermissionPolicy):
     can_read_files = [
         IfRestricted("files", then_=can_view, else_=can_all),
     ]
+    can_get_content_files = [
+        # note: even though this is closer to business logic than permissions,
+        # it was simpler and less coupling to implement this as permission check
+        IfFileIsLocal(then_=can_read_files, else_=[SystemProcess()])
+    ]
     # Allow submitting new record
     can_create = can_authenticated
 
@@ -88,6 +95,18 @@ class RDMRecordPermissionPolicy(RecordPermissionPolicy):
     can_update_draft = can_review
     # Allow uploading, updating and deleting files in drafts
     can_draft_create_files = can_review
+    can_draft_set_content_files = [
+        # review is the same as create_files
+        IfFileIsLocal(then_=can_review, else_=[SystemProcess()])
+    ]
+    can_draft_get_content_files = [
+        # preview is same as read_files
+        IfFileIsLocal(then_=can_preview, else_=[SystemProcess()])
+    ]
+    can_draft_commit_files = [
+        # review is the same as create_files
+        IfFileIsLocal(then_=can_review, else_=[SystemProcess()])
+    ]
     can_draft_update_files = can_review
     can_draft_delete_files = can_review
 
@@ -122,5 +141,7 @@ class RDMRecordPermissionPolicy(RecordPermissionPolicy):
     can_update = [Disable()]
     can_delete = [RecordOwners()]
     can_create_files = [Disable()]
+    can_set_content_files = [Disable()]
+    can_commit_files = [Disable()]
     can_update_files = [Disable()]
     can_delete_files = [RecordOwners()]

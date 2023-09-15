@@ -17,6 +17,7 @@ import tempfile
 import arrow
 import importlib_metadata as metadata
 from flask_iiif.api import IIIFImageAPIWrapper
+from invenio_communities import current_communities
 from invenio_drafts_resources.services.records import RecordService
 from invenio_records_resources.services import LinksTemplate, Service
 from invenio_records_resources.services.uow import RecordCommitOp, unit_of_work
@@ -131,6 +132,9 @@ class RDMRecordService(RecordService):
     ):
         """Search for records published in the given community."""
         self.require_permission(identity, "read")
+        community = current_communities.service.record_cls.pid.resolve(
+            community_id
+        )  # Checks weather community exists
 
         # Prepare and execute the search
         params = params or {}
@@ -142,7 +146,7 @@ class RDMRecordService(RecordService):
             search_preference,
             record_cls=self.record_cls,
             search_opts=self.config.search,
-            extra_filter=dsl.Q("term", **{"parent.communities.ids": str(community_id)}),
+            extra_filter=dsl.Q("term", **{"parent.communities.ids": str(community.id)}),
             permission_action="read",
             **kwargs,
         ).execute()
